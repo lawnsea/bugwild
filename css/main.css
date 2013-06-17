@@ -1,0 +1,51 @@
+/*
+#viewport {
+    width: 640px;
+    height: 480px;
+    margin: auto;
+    border: 1px solid red;
+}
+*/
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+  line-height: 1.1em;
+}
+.reveal pre {
+  width: 100%;
+}
+.reveal pre code {
+  max-height: 700px;
+}
+.reveal .slides {
+  text-align: left;
+}
+.reveal .small {
+  font-size: 0.9rem;
+}
+.reveal .smaller {
+  font-size: 0.8rem;
+}
+.reveal .large {
+  font-size: 110%;
+  line-height: 143%;
+}
+.reveal .center-align {
+  text-align: center;
+}
+.reveal .right-align {
+  text-align: right;
+}
+.reveal sup {
+  font-size: 50%;
+  line-height: 50%;
+}
+.reveal #bad-things-happen {
+  font-size: 150%;
+  line-height: 195%;
+}
+.reveal #testing-not-enough-2 h3 {
+  font-size: 125%;
+  line-height: 162.5%;
+}

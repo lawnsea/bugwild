@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>BUGWILD</title>
+    <meta name="description" content="">
+    <meta name="author" content="Lon Ingram">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" user-scalable="no">
+    <link rel="stylesheet" href="css/reveal.min.css">
+    <link id="theme" rel="stylesheet" href="css/theme/serif.css">
+    <link rel="stylesheet" href="css/tomorrow.css">
+    <link rel="stylesheet" href="css/main.css"><!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+      document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+      
+    </script><!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section id="title"><h1>BUGWILD</h1>
+          <h2>or, RESOLVED<br>INCOMPLETE<br>WORKSFORME<br>WONTFIX</h2><p>Lon Ingram</p>
+
+<p>Lead Frontend Engineer, Waterfall Mobile</p>
+        </section>
+        <section id="a-bug-report">
+          <q class="large">Observed:<br>The component is flat out broken.</q>
+        </section>
+        <section id="agenda"><h2>Agenda</h2>
+
+<ol><li><p>Bad things happen to good code</p></li><li><p>The first step is realizing you have a problem</p></li><li><p>Getting a report from your user to you</p></li><li><p>Talking to your user about bugs</p></li><li><p>Reanimator</p></li></ol>
+        </section>
+        <section id="about-me"><h2>Who is this guy?</h2>
+
+<p>Lead Frontend Engineer at Waterfall Mobile</p>
+
+<p>JavaScript since 2006</p>
+
+<p>Single-page apps since 2010</p>
+
+<p>SpookyJS</p>
+
+<p>Treehouse (no, not <em>that</em> Treehouse)</p>
+        </section>
+        <section id="bad-things-happen"><h2>Bad things happen to good code</h2>
+        </section>
+        <section id="your-code-has-bugs">
+          <q class="large">Why did you put the bugs in to begin with?<br><br>You're just gonna have to take them out later, you know.</q>
+        </section>
+        <section id="your-code-has-bugs-1">
+          <h2>Any software large enough<br>to be interesting has bugs.</h2>
+          <p>The industry average is 15 - 50 errors/kloc<sup>1</sup>.</p>
+          <p class="small">1) Steve McConnell. <em>Code Complete</em>, 2nd Edition, 2004.</p>
+        </section>
+        <!-- MAYBE: Unless you work for these guys... *NASA LOGO* ...your code has-->
+        <!-- bugs-->
+        <!-- Trust, but statically verify-->
+        <section id="testing-not-enough"><h3>But we got tests on tests on tests</h3>
+        </section>
+        <section id="testing-not-enough-2">
+          <h3><em>its time to taste what you most fear /<br>continuous integration will not help you here</em></h3>
+          <div class="right-align"><span class="small">(sorry, Jello)</span></div>
+        </section>
+        <section id="testing-not-enough-2b"><p>Tests demonstrate correct performance of <em>specific tasks</em> under
+<em>highly constrained</em> circumstances.</p>
+
+<p>They do not prove the absence of bugs.</p>
+
+<p>In fact, your users will encounter <em>precisely those bugs that you <strong>did not
+write tests for</strong></em>.</p>
+          <!-- Why is this not markdown?-->
+          <p class="fragment">Even if you had 100% coverage, (which you don't) <strong>testing <em> cannot</em> prove correctness.</strong></p>
+        </section>
+        <section id="best-practices-are-necessary">
+          <h3 class="center-align">Wear your damn seatbelt.</h3>
+          <p class="center-align"><img src="img/ghost-ride.jpg" alt="Ghost riding the whip"></p>
+        </section>
+        <section id="best-practices-are-necessary-2">
+          <h3>Best practices are<em> necessary</em>,<br><strong> but not sufficient</strong>.</h3>
+        </section>
+        <section id="bugs-happen-bottom-line">
+          <h3><strong>Your code <em>will </em>fail in the wild, and it will do so in ways that surprise you.</strong></h3>
+        </section>
+        <section id="failure-detection"><h2>The first step is realizing you have a problem</h2>
+        </section>
+        <section id="failure-detection-bad-code"><h3>This code is wrong. Why?</h3>
+          <pre><code class="javascript">function poll() {
+  $.ajax('http://api.example.com/feed?count=30', {
+    success: function (data) {
+      var i, latest = activity[0].timestamp;
+      while (i < data.length) {
+        if (data[i].timestamp < latest) {
+          activity.unshift(data[i]);
+          i++;
+        }
+      }
+      setTimeout(poll, interval);
+    }
+  });
+}
+</code></pre>
+        </section>
+        <section id="failure-detection-bad-code-2"><h3>What if I told you there <em>is</em> no activity?</h3><img src="img/morpheus.jpg">
+          <pre><code class="javascript">var i, latest = activity[0].timestamp;
+</code></pre>
+        </section>
+        <section id="failure-detection-intro"><p>Notify the users of failures <em>as soon as possible</em>, or their bug reports
+will often be unhelpful and misleading.</p>
+
+<p>As we just saw, this is not always possible.</p>
+        </section>
+        <section id="failure-detection-handling"><h3>Failures come in two flavors</h3>
+
+<p><strong>Recoverable</strong>: those you know how to recover from</p>
+
+<p><strong>Unrecoverable</strong>: those you do not</p>
+        </section>
+        <section id="failure-types-unrecoverable"><h3>Unrecoverable failures are <em>fatal</em></h3>
+
+<p>Your application is now in an undefined state, so the <em>only</em> appropriate
+thing to do is crash.</p>
+
+<p>Render a modal notice and prompt the user to reload the page.</p>
+          <pre><code class="javascript">  var $dialog = $('#dialog-crash');
+  $dialog.attr('title', 'Fatal Error');
+  $dialog.find('.heading').text('Example app v1.2.3 cannot continue:');
+
+  ExampleApp.crash = function (message, details) {
+    $dialog.find('.message').text(message);
+    $dialog.find('.details').text(details);
+
+    $('#dialog-crash').dialog({
+      dialogClass: 'no-close',
+      closeOnEscape: false,
+      resizable: false,
+      modal: true,
+      buttons: {
+        'Reload': function() {
+          location.reload();
+        }
+      }
+    });
+  };
+</code></pre>
+        </section>
+        <section id="failure-types-recoverable"><h3>In the case of recoverable failures, it may make sense to try again</h3>
+
+<p><strong>If retrying fails, tell the user and return to a consistent
+state.</strong></p>
+        </section>
+        <section id="failure-types-recoverable-2"><h3>In other cases, retrying won&#39;t help.</h3>
+
+<p><strong>Notify the user immediately and return to a consistent state.</strong></p>
+        </section>
+        <section id="failure-detection-synchronous"><h3>Detecting failures in synchronous code</h3>
+        </section>
+        <section id="failure-detection-onerror"><h3>Always have an <code>onerror</code> handler</h3>
+
+<p>This is your last line of defense.</p>
+
+<p>If you get here, you are crashing.</p>
+
+<p>In an <code>onerror</code> handler, you get the error <strong>message</strong> and the <strong>line
+number</strong> and <strong>URL</strong> where the error originated.</p>
+          <pre><code class="javascript">window.onerror = function (message, url, line) {
+  ExampleApp.crash(message, url + '\n' + 'line: ' + line);
+};
+</code></pre>
+        </section>
+        <section id="failure-detection-exceptions"><h3>Wrap all top-level synchronous code in <code>try</code>/<code>catch</code> blocks.</h3>
+
+<p>In an exception handler, you get an <code>Error</code> instance.</p>
+
+<p>All browsers provide <code>name</code> and <code>message</code>.</p>
+
+<p>Recent browsers provide <code>stack</code>, a string or array stack trace.</p>
+          <pre><code class="javascript">$(function () {
+  try {
+    ExampleApp.initialize();
+  } catch (e) {
+    ExampleApp.crash(e.name + ': ' + e.message, e.stack);
+  }
+});
+</code></pre>
+          <div class="fragment"><p><a href="http://stacktracejs.com/">stacktracejs.com</a> tries to provide
+stack traces in all browsers.</p>
+
+<p>YMMV, but YOLO.</p>
+          </div>
+        </section>
+        <section id="failure-detection-exceptions-1"><h3>The rules of exception handling</h3>
+
+<ol><li><p>Never catch an exception you can&#39;t do anything about.</p></li><li><p>If you catch an exception you cannot handle, always re-throw the <em>same exception</em>.</p></li><li><p>If you catch an exception in your top-level code that you cannot handle, <strong>crash</strong>.</p></li></ol>
+        </section>
+        <section id="failure-detection-async"><h3>Detecting failures in async code</h3>
+        </section>
+        <section id="failure-detection-async-1"><p>Never throw in a callback.</p>
+
+<p>Wrap code that <em>can</em> throw in <code>try</code>/<code>catch</code> blocks.</p>
+          <pre><code class="javascript">function safeCallback(fn) {
+  return function () {
+    try {
+      return fn.apply(this, arguments);
+    } catch (e) {
+      ExampleApp.crash(e.name + ': ' + e.message, e.stack);
+    }
+  };
+}
+</code></pre>
+        </section>
+        <section id="failure-detection-async-2"><p>When using callbacks, always provide an <code>error</code> handler</p>
+          <pre><code class="javascript">$.ajax('http://api.example.com/foo/bar', {
+  success: safeCallback(function (result) {
+    // ...
+  }),
+  error: safeCallback(function (jqXHR, textStatus, errorThrown) {
+    // ...
+  })
+});
+</code></pre>
+        </section>
+        <section id="failure-detection-async-3"><p>Always provide a <code>fail</code> handler when using promises</p>
+          <pre><code class="javascript">$.ajax('http://api.example.com/foo/bar').
+  done(safeCallback(function (result) {
+    // do something cool...
+  })).
+  fail(safeCallback(function (jqXHR, textStatus, errorThrown) {
+    // handle the error...
+  }));
+</code></pre>
+        </section>
+        <section id="user-notification-how"><h2>How do I get a report?</h2>
+        </section>
+        <section id="user-notification-how-mailto"><h3>Email</h3>
+
+<p>This is the simplest solution.</p>
+
+<p>Encode the report as a <code>mailto</code> link.</p>
+
+<p>Ask the user to click it and email the report to you.</p>
+        </section>
+        <section id="user-notification-how-mailto-2"><p>Pros:</p>
+
+<ul><li>Everyone has email</li><li>The user can add helpful context to the bug</li></ul>
+        </section>
+        <section id="user-notification-how-mailto-3"><p>Cons:</p>
+
+<ul><li><code>mailto</code> link limits vary wildly between browsers</li><li>Asking the user to cut and paste is error-prone</li><li>Requires user action</li></ul>
+        </section>
+        <section id="user-notification-how-webform"><h3>Web form</h3>
+
+<p>This is a bit more complicated.</p>
+
+<p>Render a bug report form and ask the user to complete it.</p>
+        </section>
+        <section id="user-notification-how-webform-2"><p>Pros:</p>
+
+<ul><li>Payload capacity is far greater than <code>mailto</code> links</li><li>The user can still add context</li><li>No cut and paste</li></ul>
+        </section>
+        <section id="user-notification-how-webform-3"><p>Cons:</p>
+
+<ul><li>Server-side support necessary</li><li>Still requires user action</li></ul>
+        </section>
+        <section id="user-notification-how-automatic"><h3>Automatic reports</h3>
+
+<p>Rather than asking the user to send the report, the application can
+instead submit it automatically when a failure is detected.</p>
+        </section>
+        <section id="user-notification-how-automatic-2"><p>Pros:</p>
+
+<ul><li>Does not require user action</li><li>Can return fixes or workarounds for known issues</li></ul>
+        </section>
+        <section id="user-notification-how-automatic-3"><p>Cons:</p>
+
+<ul><li>Server-side support required</li><li>No opportunity to gather context from the user</li><li>Duplicates will be common</li></ul>
+        </section>
+        <section id="user-notification-how-recommendation"><h3>What I recommend</h3>
+
+<ol><li><p>Send an automatic report immediately.</p></li><li><p>Notify the user of the failure and ask for feedback.</p></li><li><p>Append any feedback to the initial report.</p></li></ol>
+        </section>
+        <section id="report-backends"><h3>Where do I send the report?</h3>
+
+<ul><li>Airbrake</li><li>Debuggify</li><li>Errorception</li><li>JSLogger</li><li>Muscula</li><li>Sentry</li></ul>
+
+<p>You can also roll your own backend.</p>
+        </section>
+        <section id="bug-report-contents"><h2>What do I put in the report?</h2>
+        </section>
+        <section id="bug-report-contents-onerror"><p>At a minimum, a serialized representation of the error information
+the browser gives you.</p>
+        </section>
+        <section id="bug-report-contents-other"><p>Additional context and metadata can be helpful, but it&#39;s difficult
+to know what will be of use.</p>
+
+<p>Data that was critical to diagnosing the last crash may be
+worthless today.</p>
+        </section>
+        <section id="failure-detection-async-stack"><p>If a callback function fails, the original call stack is invaluable.</p>
+
+<p>Capture the stack when the async method is called, attach it to the
+callback, and include it in the report.</p>
+        </section>
+        <section id="failure-detection-async-api"><p>If a call to an external API fails, it&#39;s useful to include:</p>
+
+<ul><li>URL and HTTP method</li><li>parameters or payload</li><li>response</li><li>status code</li></ul>
+        </section>
+        <section id="user-notification-what-to-say"><h2>What do I tell the user?</h2>
+        </section>
+        <section id="user-notification-what-to-say-2"><p>The appropriate level of detail depends on the audience.</p>
+
+<p>At a minimum, tell the user:</p>
+
+<ul><li>How bad it is: have they lost data? can they continue?</li><li>What, if anything, they can do</li><li>Who to tell, how to tell them, and what they need to know</li></ul>
+        </section>
+        <section id="reanimator">
+          <!-- FIXME--><p>LOLJK. None of this will help.</p>
+        </section>
+        <section id="reanimator-intro"><p>You&#39;re still gonna get these:</p>
+          <q class="large">Observed:<br>The component is flat out broken.</q>
+          <p class="fragment">What we'd really like is to witness the failure first-hand.</p>
+        </section>
+        <section id="reanimator-intro-2">
+          <div class="center-align"><h3>Reanimator</h3>
+
+<p><img alt="Re-animator still" src="/img/reanimator.jpeg"/></p>
+          </div>
+        </section>
+        <section id="reanimator-intro-mugshot">
+          <p>Reanimator is inspired by Mugshot<sup>1</sup></p><p><img alt="James Mickens" src="/img/mickens.jpg"/></p>
+          <p class="smaller">
+            1) James Mickens, Jeremy Elson, and Jon Howell, Mugshot:
+            Deterministic Capture and Replay for JavaScript Applications, in<em> Proceedings of NSDI</em>, USENIX, April 2010
+          </p>
+        </section>
+        <section id="reanimator-overview"><h3>Mugshot&#39;s Idea</h3>
+
+<p>Computers are deterministic: given the same inputs, they will always
+arrive at the same result.</p>
+
+<p>Capture input to a log.</p>
+
+<p>Later, run the program again and <em>replay</em> the captured input.</p>
+        </section>
+        <section id="reanimator-demo">
+          <h3> <a href="http://localhost:8999/demos/todomvc/architecture-examples/backbone/index.html#?capture" target="_blank">Demo</a></h3>
+        </section>
+        <section id="reanimator-demo-status"><h3>Status</h3>
+
+<p>This is a tech demo only.</p>
+
+<p>Reanimator is not ready for production yet.</p>
+
+<p>We are working on getting Reanimator ready to deploy in our app later this
+year.</p>
+        </section>
+        <section id="reanimator-demo-overhead"><h3>Overhead</h3>
+
+<p>It&#39;s too early to know what Reanimator&#39;s overhead will be.</p>
+
+<p>We expect it will be similar to Mugshot&#39;s.</p>
+
+<ul><li>Log growth rate: 10 - 106 Kbps</li><li>Logging overhead: 0.8 - 6.8%</li></ul>
+        </section>
+        <section id="reanimator-demo-limitations"><h3>Limitations</h3>
+
+<p>Browser quirks make 100% faithful replay difficult.</p>
+
+<p>Visual effects that depend on events outside of JavaScript&#39;s purview
+(<code>:hover</code>, e.g.) cannot be replayed.</p>
+
+<p>Replay must be performed on the same code as capture occured.</p>
+        </section>
+        <section id="conclusion"><h2>Recap</h2>
+        </section>
+        <section id="conclusion-1">
+          <!-- FIXME: fragment these--><p>Your code will fail, so prepare.</p>
+
+<p>Detect failures as soon as possible.</p>
+
+<p>Get the information you need to debug the problem.</p>
+
+<p>Send a report.</p>
+
+<p>Tell the user what&#39;s happening.</p>
+        </section>
+        <section id="conclusion-2"><h3>Thanks!</h3>
+
+<p>@lawnsea</p>
+
+<p>lawnsea at gmail</p>
+
+<p>lon at waterfallmobile</p>
+
+<p>https://github.com/WaterfallEngineering/reanimator</p>
+
+<p>https://github.com/lawnsea (slides here later today)</p>
+          <p class="large">Waterfall is hiring:</p><p>http://waterfallmobile.com/company/</p>
+        </section>
+      </div>
+    </div>
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.min.js"></script>
+    <script src="js/jquery-2.0.2.min.js"></script>
+    <script src="js/jquery.fittext.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
